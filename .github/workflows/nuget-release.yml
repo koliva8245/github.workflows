@@ -1,0 +1,39 @@
+name: Nuget Release
+
+on:
+  workflow_call:
+    inputs:
+      artificats-workflow:
+        required: true
+        type: string
+    secrets:
+      artifacts-dowload-token:
+        required: true
+      nuget-api-token:
+        required: true
+        
+env:
+  ARTIFACTS: ./artifacts
+  
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          github_token: ${{ secrets.artifacts-dowload-token }}
+          workflow: ${{ inputs.artificats-workflow }}
+          name: "-Nuget$"
+          name_is_regexp: true
+          path: ${{ env.ARTIFACTS }}
+          
+      - name: Use dotnet sdk
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.x
+        env:
+          NUGET_AUTH_TOKEN: ${{secrets.nuget-api-token}}
+
+      - name: Publish nuget
+        run: dotnet nuget push ${{ env.ARTIFACTS }}/**/*.nupkg
