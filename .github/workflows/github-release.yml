@@ -1,0 +1,58 @@
+name: Github Release
+
+on:
+  workflow_call:
+    inputs:
+      title:
+        required: true
+        type: string
+      app-name:
+        required: true
+        type: string
+      artificats-workflow:
+        required: true
+        type: string
+    secrets:
+        artifacts-dowload-token:
+          required: true
+        github-release-token:
+          required: true
+
+env:
+  ARTIFACTS: ./artifacts
+  
+jobs:
+  github-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          github_token: ${{ secrets.artifacts-dowload-token }}
+          workflow: ${{ inputs.artificats-workflow }}
+          path: ${{ env.ARTIFACTS }}
+
+      - name: Get version
+        shell: pwsh
+        run: |
+          [array]$paths = Get-ChildItem -Path "${{ env.ARTIFACTS }}/**/*.nupkg" -File -Name
+          echo $paths
+          $last = $paths[0]
+          $last -match '${{ inputs.app-name }}\.(\d+\.\d+\.\d+(?:-(beta|alpha)\.\d+)?)\.nupkg'
+          $match = $matches[1]
+          echo "VERSION=$match" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body: |
+            ## What's New
+            ## Fixes
+            ## Other
+          name: ${{ inputs.title }} ${{ env.VERSION }}
+          tag_name: v${{ env.VERSION }}
+          draft: true
+          files: ${{ env.ARTIFACTS }}/**
+          fail_on_unmatched_files: true
+          token: ${{ secrets.github-release-token }}
+        
