@@ -16,7 +16,7 @@ env:
   ARTIFACTS: ./artifacts
   
 jobs:
-  deploy:
+  nuget-release:
     runs-on: ubuntu-latest
     steps:
       - name: Download artifacts
@@ -32,8 +32,8 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 8.0.x
-        env:
-          NUGET_AUTH_TOKEN: ${{secrets.nuget-api-token}}
-
+          
       - name: Publish nuget
-        run: dotnet nuget push ${{ env.ARTIFACTS }}/**/*.nupkg
+        run: dotnet nuget push ${{ env.ARTIFACTS }}/**/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json  
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.nuget-api-token }}
