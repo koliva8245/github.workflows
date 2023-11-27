@@ -111,8 +111,6 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: ${{ inputs.artifact-name-prefix }}-Nuget
-        path: |
-          "${{ env.NUPKG_PATH }}/*.nupkg"
-          "${{ env.NUPKG_PATH }}/*.snupkg"
+        path: "${{ env.NUPKG_PATH }}/*.@(nupkg|snupkg)"
         if-no-files-found: error
         
