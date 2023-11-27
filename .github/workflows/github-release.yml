@@ -13,9 +13,7 @@ on:
         required: true
         type: string
     secrets:
-        artifacts-dowload-token:
-          required: true
-        github-release-token:
+        token:
           required: true
 
 env:
@@ -28,7 +26,7 @@ jobs:
       - name: Download artifacts
         uses: dawidd6/action-download-artifact@v2
         with:
-          github_token: ${{ secrets.artifacts-dowload-token }}
+          github_token: ${{ secrets.token }}
           workflow: ${{ inputs.artificats-workflow }}
           path: ${{ env.ARTIFACTS }}
 
@@ -54,5 +52,5 @@ jobs:
           draft: true
           files: ${{ env.ARTIFACTS }}/**
           fail_on_unmatched_files: true
-          token: ${{ secrets.github-release-token }}
+          token: ${{ secrets.token }}
         
