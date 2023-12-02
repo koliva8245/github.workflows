@@ -167,7 +167,7 @@ jobs:
         echo "$npath"
 
         $spath = $npath -replace '\.nupkg$', '.snupkg'
-        $tempSPath = $spath -replace '(\.snupkg)$', '.symbols$1'
+        $tempSPath = $spath -replace '\.snupkg$', '.symbols.nupkg'
         Rename-Item -Path $spath -NewName $tempSPath
         echo "$tempSPath"
 
