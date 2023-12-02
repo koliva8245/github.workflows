@@ -12,6 +12,9 @@ on:
       artificats-workflow:
         required: true
         type: string
+      github-release-url:
+        required: true
+        type: string
     secrets:
         token:
           required: true
@@ -22,6 +25,9 @@ env:
 jobs:
   github-release:
     runs-on: ubuntu-latest
+    environment:
+      name: github-release
+      url: '${{ inputs.github-release-url }}'
     steps:
       - name: Download artifacts
         uses: dawidd6/action-download-artifact@v2
