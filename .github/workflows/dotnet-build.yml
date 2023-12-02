@@ -112,23 +112,21 @@ jobs:
     - name: Nuget Pack
       run: dotnet pack ${{ inputs.main-project }} --no-build -o $env:NUPKG_PATH  
 
-    - name: Cache packages
+    - name: Cache publish files
       uses: actions/cache/save@v3
       with:
         path: |
           ${{ env.PUBLISH_ANY_PATH }}
-          ${{ env.NUPKG_PATH }}
-          ${{ env.PACKAGE_VERSION_FILE }}
-        key: packages-${{ github.run_id }}-${{ github.run_attempt }}
+        key: publish-${{ github.run_id }}-${{ github.run_attempt }}
         enableCrossOsArchive: true
 
-    - name: Cache nuget packages only
+    - name: Cache nuget packages
       uses: actions/cache/save@v3
       with:
         path: |
           ${{ env.NUPKG_PATH }}
           ${{ env.PACKAGE_VERSION_FILE }}
-        key: nuget-only-packages-${{ github.run_id }}-${{ github.run_attempt }}
+        key: nuget-${{ github.run_id }}-${{ github.run_attempt }}
         enableCrossOsArchive: true
         
   sign-nuget:
@@ -143,13 +141,9 @@ jobs:
         path: |
           ${{ env.NUPKG_PATH }}
           ${{ env.PACKAGE_VERSION_FILE }}
-        key: nuget-only-packages-${{ github.run_id }}-${{ github.run_attempt }}
+        key: nuget-${{ github.run_id }}-${{ github.run_attempt }}
         enableCrossOsArchive: true
         fail-on-cache-miss: true
-
-    - name: Check nuget-cache hit
-      if: steps.nuget-cache.outputs.cache-hit != 'true'
-      run: exit 1
 
     - name: Get version
       shell: bash
@@ -175,25 +169,54 @@ jobs:
         .\CodeSignTool.bat sign -username=${{ secrets.es-username }} -password=${{ secrets.es-password }} -credential_id=${{ secrets.es-credential-id }} -totp_secret=${{ secrets.es-totp-secret }} -input_file_path="$npath" -override
         $output = nuget verify -Signatures $npath
         if ($output1 -like '*failed*') { exit 1 }
+
+    - name: Cache signed nuget packages
+      uses: actions/cache/save@v3
+      with:
+        path: |
+          ${{ env.NUPKG_PATH }}
+          ${{ env.PACKAGE_VERSION_FILE }}
+        key: nuget-signed-${{ github.run_id }}-${{ github.run_attempt }}
+        enableCrossOsArchive: true
         
   upload-artifacts:
     needs: sign-nuget
     runs-on: ubuntu-latest
+    if: ${{ always() }}
     steps:
-    - name: Restore Packages
-      id: package-cache
+    - name: Restore publish files
+      id: publish-cache
       uses: actions/cache/restore@v3
       with:
         path: |
           ${{ env.PUBLISH_ANY_PATH }}
+        key: publish-${{ github.run_id }}-${{ github.run_attempt }}
+        enableCrossOsArchive: true
+        fail-on-cache-miss: true
+        
+    - name: Restore signed nuget file
+      id: nuget-signed-cache
+      uses: actions/cache/restore@v3
+      if: github.ref == 'refs/heads/main'
+      with:
+        path: |
           ${{ env.NUPKG_PATH }}
           ${{ env.PACKAGE_VERSION_FILE }}
-        key: packages-${{ github.run_id }}-${{ github.run_attempt }}
+        key: nuget-signed-${{ github.run_id }}-${{ github.run_attempt }}
+        enableCrossOsArchive: true
         fail-on-cache-miss: true
 
-    - name: Check package-cache hit
-      if: steps.package-cache.outputs.cache-hit != 'true'
-      run: exit 1
+    - name: Restore nuget file
+      id: nuget-cache
+      uses: actions/cache/restore@v3
+      if: github.ref != 'refs/heads/main'
+      with:
+        path: |
+          ${{ env.NUPKG_PATH }}
+          ${{ env.PACKAGE_VERSION_FILE }}
+        key: nuget-${{ github.run_id }}-${{ github.run_attempt }}
+        enableCrossOsArchive: true
+        fail-on-cache-miss: true
       
     - name: Get version
       run: |
