@@ -159,17 +159,30 @@ jobs:
         Remove-Item CodeSignTool.zip
         Add-Content -Path .\CodeSignTool\conf\code_sign_tool.properties -Value "`nTSA_LEGACY_URL=http://ts.ssl.com/legacy"
         
-    - name: Sign artifact
+    - name: Sign artifacts
       run: |
         $path = $env:NUPKG_PATH -replace "/", "\"
         $relativePath = $path +  '\' + '${{ inputs.artifact-name-prefix }}' + '.' + '${{ env.version }}' + '.nupkg'
         $npath = Resolve-Path -Path (Join-Path -Path '${{ github.workspace }}' -ChildPath $relativePath)
         echo "$npath"
+
+        $spath = $npath -replace '\.nupkg$', '.snupkg'
+        $tempSPath = $spath -replace '(\.snupkg)$', '.symbols$1'
+        Rename-Item -Path $spath -NewName $tempSPath
+        echo "$tempSPath"
+
         cd CodeSignTool
         .\CodeSignTool.bat sign -username=${{ secrets.es-username }} -password=${{ secrets.es-password }} -credential_id=${{ secrets.es-credential-id }} -totp_secret=${{ secrets.es-totp-secret }} -input_file_path="$npath" -override
-        $output = nuget verify -Signatures $npath
-        if ($output1 -like '*failed*') { exit 1 }
+        .\CodeSignTool.bat sign -username=${{ secrets.es-username }} -password=${{ secrets.es-password }} -credential_id=${{ secrets.es-credential-id }} -totp_secret=${{ secrets.es-totp-secret }} -input_file_path="$tempSPath" -override
+        $outputN = nuget verify -Signatures $npath
+        if ($outputN -like '*failed*') { exit 1 }
+        $outputS = nuget verify -Signatures $tempSPath
+        if ($outputS -like '*failed*') { exit 1 }
 
+        cd ..
+        Rename-Item -Path $tempSPath -NewName $spath
+        echo "$spath"
+        
     - name: Cache signed nuget packages
       uses: actions/cache/save@v3
       with:
