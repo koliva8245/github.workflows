@@ -6,6 +6,12 @@ on:
       artificats-workflow:
         required: true
         type: string
+      nuget-publish-env:
+        required: true
+        type: string
+      nuget-publish-url:
+        required: true
+        type: string
     secrets:
       token:
         required: true
@@ -16,8 +22,11 @@ env:
   ARTIFACTS: ./artifacts
   
 jobs:
-  nuget-release:
+  nuget-publish:
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.nuget-publish-env }}
+      url: '${{ inputs.nuget-publish-url }}'
     steps:
       - name: Download artifacts
         uses: dawidd6/action-download-artifact@v2
