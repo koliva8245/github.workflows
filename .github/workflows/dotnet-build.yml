@@ -110,14 +110,14 @@ jobs:
         echo "VERSION=$version" | Out-File -FilePath ${{ env.PACKAGE_VERSION_FILE }} -Encoding utf8 -Append
         
     - name: Publish
-      if: ${{ is-tool }} == 'true'
+      if: ${{ inputs.is-tool }} == 'true'
       run: dotnet publish ${{ inputs.main-project }} -o $env:PUBLISH_ANY_PATH
 
     - name: Nuget Pack
       run: dotnet pack ${{ inputs.main-project }} --no-build -o $env:NUPKG_PATH  
 
     - name: Cache publish files
-      if: ${{ is-tool }} == 'true'
+      if: ${{ inputs.is-tool }} == 'true'
       uses: actions/cache/save@v3
       with:
         path: |
@@ -203,7 +203,7 @@ jobs:
     if: ${{ always() }}
     steps:
     - name: Restore publish files
-      if: ${{ is-tool }} == 'true'
+      if: ${{ inputs.is-tool }} == 'true'
       id: publish-cache
       uses: actions/cache/restore@v3
       with:
@@ -244,11 +244,11 @@ jobs:
         echo "version=$VERSION" | tr -d '\r\n' >> "$GITHUB_ENV"
         
     - name: Archive Release Files - Zip
-      if: ${{ is-tool }} == 'true'
+      if: ${{ inputs.is-tool }} == 'true'
       run: 7z a -tzip '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.zip' '${{ env.PUBLISH_ANY_PATH }}'
 
     - name: Archive Release Files - Tar
-      if: ${{ is-tool }} == 'true'
+      if: ${{ inputs.is-tool }} == 'true'
       shell: pwsh
       run: |
         $lastPart = (Split-Path ${{ env.PUBLISH_ANY_PATH }} -Leaf)
@@ -256,7 +256,7 @@ jobs:
         tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.tar.gz' -C $parentPath $lastPart
         
     - name: Upload Artifacts - Release Files - Zip
-      if: ${{ is-tool }} == 'true'
+      if: ${{ inputs.is-tool }} == 'true'
       uses: actions/upload-artifact@v3
       with:
         name: ${{ inputs.artifact-name-prefix }}
@@ -264,7 +264,7 @@ jobs:
         if-no-files-found: error
         
     - name: Upload Artifacts - Release Files - Tar
-      if: ${{ is-tool }} == 'true'
+      if: ${{ inputs.is-tool }} == 'true'
       uses: actions/upload-artifact@v3
       with:
         name: ${{ inputs.artifact-name-prefix }}
