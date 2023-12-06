@@ -114,8 +114,13 @@ jobs:
       run: dotnet publish ${{ inputs.main-project }} -o $env:PUBLISH_ANY_PATH
 
     - name: Nuget Pack
+      if: ${{ inputs.is-tool }}
       run: dotnet pack ${{ inputs.main-project }} --no-build -o $env:NUPKG_PATH  
 
+    - name: Nuget Pack
+      if: ${{ !inputs.is-tool }}
+      run: dotnet pack ${{ inputs.main-project }} -o $env:NUPKG_PATH  
+      
     - name: Cache publish files
       if: ${{ inputs.is-tool }}
       uses: actions/cache/save@v3
