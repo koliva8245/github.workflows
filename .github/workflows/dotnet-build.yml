@@ -113,7 +113,7 @@ jobs:
       if: ${{ inputs.is-tool }}
       run: dotnet publish ${{ inputs.main-project }} -o $env:PUBLISH_ANY_PATH
 
-    - name: Nuget Pack
+    - name: Nuget Pack (no-build)
       if: ${{ inputs.is-tool }}
       run: dotnet pack ${{ inputs.main-project }} --no-build -o $env:NUPKG_PATH  
 
@@ -261,7 +261,7 @@ jobs:
         tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.tar.gz' -C $parentPath $lastPart
         
     - name: Upload Artifacts - Release Files - Zip
-      if: ${{ inputs.is-tool }} == 'true'
+      if: ${{ inputs.is-tool }}
       uses: actions/upload-artifact@v3
       with:
         name: ${{ inputs.artifact-name-prefix }}
@@ -269,7 +269,7 @@ jobs:
         if-no-files-found: error
         
     - name: Upload Artifacts - Release Files - Tar
-      if: ${{ inputs.is-tool }} == 'true'
+      if: ${{ inputs.is-tool }}
       uses: actions/upload-artifact@v3
       with:
         name: ${{ inputs.artifact-name-prefix }}
