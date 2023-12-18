@@ -27,6 +27,12 @@ on:
         
 env:
   PUBLISH_ANY_PATH: ./bin/publish/any
+  PUBLISH_FDE_WIN_PATH: ./bin/publish/fde/win-x64
+  PUBLISH_FDE_OSX_PATH: ./bin/publish/fde/osx-x64
+  PUBLISH_FDE_LINUX_PATH: ./bin/publish/fde/linux-x64
+  PUBLISH_SCD_WIN_PATH: ./bin/publish/scd/win-x64
+  PUBLISH_SCD_OSX_PATH: ./bin/publish/scd/osx-x64
+  PUBLISH_SCD_LINUX_PATH: ./bin/publish/scd/linux-x64
   NUPKG_PATH: ./bin/nupkg/any
   PACKAGE_VERSION_FILE: ./version.txt
   
@@ -113,6 +119,37 @@ jobs:
       if: ${{ inputs.is-tool }}
       run: dotnet publish ${{ inputs.main-project }} -o $env:PUBLISH_ANY_PATH
 
+    - name: FDE and SCD Prep
+      if: ${{ inputs.is-tool }}     
+      shell: pwsh
+      run: |
+        $content = Get-Content ${{ inputs.main-project }}
+        $content | % { $_.Replace("<PublishSingleFile>false</PublishSingleFile>", "<PublishSingleFile>true</PublishSingleFile>") } | Set-Content ${{ inputs.main-project }}
+        
+    - name: Publish release [fde-win-x64]
+      if: ${{ inputs.is-tool }}
+      run: dotnet publish ${{ inputs.main-project }} --self-contained false -r win-x64 -o $env:PUBLISH_FDE_WIN_PATH
+
+    - name: Publish release [fde-osx-x64]
+      if: ${{ inputs.is-tool }}
+      run: dotnet publish ${{ inputs.main-project }} --self-contained false -r osx-x64 -o $env:PUBLISH_FDE_OSX_PATH
+
+    - name: Publish release [fde-linux-x64]
+      if: ${{ inputs.is-tool }}
+      run: dotnet publish ${{ inputs.main-project }} --self-contained false -r linux-x64 -o $env:PUBLISH_FDE_LINUX_PATH
+
+    - name: Publish release [scd-win-x64]
+      if: ${{ inputs.is-tool }}
+      run: dotnet publish ${{ inputs.main-project }} --self-contained true -r win-x64 -o $env:PUBLISH_SCD_WIN_PATH
+
+    - name: Publish release [scd-osx-x64]
+      if: ${{ inputs.is-tool }}
+      run: dotnet publish ${{ inputs.main-project }} --self-contained true -r osx-x64 -o $env:PUBLISH_SCD_OSX_PATH
+
+    - name: Publish release [scd-linux-x64]
+      if: ${{ inputs.is-tool }}
+      run: dotnet publish ${{ inputs.main-project }} --self-contained true -r linux-x64 -o $env:PUBLISH_SCD_LINUX_PATH
+      
     - name: Nuget Pack (no-build)
       if: ${{ inputs.is-tool }}
       run: dotnet pack ${{ inputs.main-project }} --no-build -o $env:NUPKG_PATH  
@@ -127,6 +164,12 @@ jobs:
       with:
         path: |
           ${{ env.PUBLISH_ANY_PATH }}
+          ${{ env.PUBLISH_FDE_WIN_PATH }}
+          ${{ env.PUBLISH_FDE_OSX_PATH }}
+          ${{ env.PUBLISH_FDE_LINUX_PATH }}
+          ${{ env.PUBLISH_SCD_WIN_PATH }}
+          ${{ env.PUBLISH_SCD_OSX_PATH }}
+          ${{ env.PUBLISH_SCD_LINUX_PATH }}
         key: publish-${{ github.run_id }}-${{ github.run_attempt }}
         enableCrossOsArchive: true
 
@@ -214,6 +257,12 @@ jobs:
       with:
         path: |
           ${{ env.PUBLISH_ANY_PATH }}
+          ${{ env.PUBLISH_FDE_WIN_PATH }}
+          ${{ env.PUBLISH_FDE_OSX_PATH }}
+          ${{ env.PUBLISH_FDE_LINUX_PATH }}
+          ${{ env.PUBLISH_SCD_WIN_PATH }}
+          ${{ env.PUBLISH_SCD_OSX_PATH }}
+          ${{ env.PUBLISH_SCD_LINUX_PATH }}
         key: publish-${{ github.run_id }}-${{ github.run_attempt }}
         enableCrossOsArchive: true
         fail-on-cache-miss: true
@@ -248,16 +297,56 @@ jobs:
         echo $VERSION
         echo "version=$VERSION" | tr -d '\r\n' >> "$GITHUB_ENV"
         
-    - name: Archive Release Files - Zip
+    - name: Archive [fdd-any] zip
       if: ${{ inputs.is-tool }}
       run: 7z a -tzip '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.zip' '${{ env.PUBLISH_ANY_PATH }}'
 
-    - name: Archive Release Files - Tar
+    - name: Archive [fdd-any] tar
       if: ${{ inputs.is-tool }}
       shell: pwsh
       run: |
         $lastPart = (Split-Path ${{ env.PUBLISH_ANY_PATH }} -Leaf)
         $parentPath = (Split-Path ${{ env.PUBLISH_ANY_PATH }} -Parent)
+        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.tar.gz' -C $parentPath $lastPart
+
+    - name: Archive [fde-win-x64]
+      if: ${{ inputs.is-tool }}
+      run: 7z a -tzip '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.zip' '${{ env.PUBLISH_FDE_WIN_PATH }}'
+
+    - name:  Archive Archive [fde-osx-x64]
+      if: ${{ inputs.is-tool }}
+      shell: pwsh
+      run: |
+        $lastPart = (Split-Path ${{ env.PUBLISH_FDE_OSX_PATH }} -Leaf)
+        $parentPath = (Split-Path ${{ env.PUBLISH_FDE_OSX_PATH }} -Parent)
+        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.tar.gz' -C $parentPath $lastPart
+
+    - name:  Archive [fde-linux-x64]
+      if: ${{ inputs.is-tool }}
+      shell: pwsh
+      run: |
+        $lastPart = (Split-Path ${{ env.PUBLISH_FDE_LINUX_PATH }} -Leaf)
+        $parentPath = (Split-Path ${{ env.PUBLISH_FDE_LINUX_PATH }} -Parent)
+        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.tar.gz' -C $parentPath $lastPart
+        
+    - name: Archive [scd-win-x64]
+      if: ${{ inputs.is-tool }}
+      run: 7z a -tzip '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.zip' '${{ env.PUBLISH_SCD_WIN_PATH }}'
+
+    - name:  Archive [scd-osx-x64]
+      if: ${{ inputs.is-tool }}
+      shell: pwsh
+      run: |
+        $lastPart = (Split-Path ${{ env.PUBLISH_SCD_OSX_PATH }} -Leaf)
+        $parentPath = (Split-Path ${{ env.PUBLISH_SCD_OSX_PATH }} -Parent)
+        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.tar.gz' -C $parentPath $lastPart
+
+    - name:  Archive [scd-linux-x64]
+      if: ${{ inputs.is-tool }}
+      shell: pwsh
+      run: |
+        $lastPart = (Split-Path ${{ env.PUBLISH_SCD_LINUX_PATH }} -Leaf)
+        $parentPath = (Split-Path ${{ env.PUBLISH_SCD_LINUX_PATH }} -Parent)
         tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.tar.gz' -C $parentPath $lastPart
         
     - name: Upload Artifacts - Release Files - Zip
