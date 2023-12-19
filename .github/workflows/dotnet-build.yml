@@ -299,7 +299,7 @@ jobs:
         
     - name: Archive [fdd-any] zip
       if: ${{ inputs.is-tool }}
-      run: 7z a -tzip '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.zip' '${{ env.PUBLISH_ANY_PATH }}'
+      run: 7z a -tzip '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fdd-any.zip' '${{ env.PUBLISH_ANY_PATH }}'
 
     - name: Archive [fdd-any] tar
       if: ${{ inputs.is-tool }}
@@ -307,11 +307,11 @@ jobs:
       run: |
         $lastPart = (Split-Path ${{ env.PUBLISH_ANY_PATH }} -Leaf)
         $parentPath = (Split-Path ${{ env.PUBLISH_ANY_PATH }} -Parent)
-        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.tar.gz' -C $parentPath $lastPart
+        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fdd-any.tar.gz' -C $parentPath $lastPart
 
     - name: Archive [fde-win-x64]
       if: ${{ inputs.is-tool }}
-      run: 7z a -tzip '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.zip' '${{ env.PUBLISH_FDE_WIN_PATH }}'
+      run: 7z a -tzip '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-win-x64.zip' '${{ env.PUBLISH_FDE_WIN_PATH }}'
 
     - name:  Archive Archive [fde-osx-x64]
       if: ${{ inputs.is-tool }}
@@ -319,7 +319,7 @@ jobs:
       run: |
         $lastPart = (Split-Path ${{ env.PUBLISH_FDE_OSX_PATH }} -Leaf)
         $parentPath = (Split-Path ${{ env.PUBLISH_FDE_OSX_PATH }} -Parent)
-        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.tar.gz' -C $parentPath $lastPart
+        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-osx-x64.tar.gz' -C $parentPath $lastPart
 
     - name:  Archive [fde-linux-x64]
       if: ${{ inputs.is-tool }}
@@ -327,11 +327,11 @@ jobs:
       run: |
         $lastPart = (Split-Path ${{ env.PUBLISH_FDE_LINUX_PATH }} -Leaf)
         $parentPath = (Split-Path ${{ env.PUBLISH_FDE_LINUX_PATH }} -Parent)
-        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.tar.gz' -C $parentPath $lastPart
+        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-linux-x64.tar.gz' -C $parentPath $lastPart
         
     - name: Archive [scd-win-x64]
       if: ${{ inputs.is-tool }}
-      run: 7z a -tzip '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.zip' '${{ env.PUBLISH_SCD_WIN_PATH }}'
+      run: 7z a -tzip '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-win-x64.zip' '${{ env.PUBLISH_SCD_WIN_PATH }}'
 
     - name:  Archive [scd-osx-x64]
       if: ${{ inputs.is-tool }}
@@ -339,7 +339,7 @@ jobs:
       run: |
         $lastPart = (Split-Path ${{ env.PUBLISH_SCD_OSX_PATH }} -Leaf)
         $parentPath = (Split-Path ${{ env.PUBLISH_SCD_OSX_PATH }} -Parent)
-        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.tar.gz' -C $parentPath $lastPart
+        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-osx-x64.tar.gz' -C $parentPath $lastPart
 
     - name:  Archive [scd-linux-x64]
       if: ${{ inputs.is-tool }}
@@ -347,24 +347,72 @@ jobs:
       run: |
         $lastPart = (Split-Path ${{ env.PUBLISH_SCD_LINUX_PATH }} -Leaf)
         $parentPath = (Split-Path ${{ env.PUBLISH_SCD_LINUX_PATH }} -Parent)
-        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.tar.gz' -C $parentPath $lastPart
+        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-linux-x64.tar.gz' -C $parentPath $lastPart
         
-    - name: Upload Artifacts - Release Files - Zip
+    - name: Publish artifacts [fdd-any] zip
       if: ${{ inputs.is-tool }}
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ inputs.artifact-name-prefix }}
-        path: "${{ runner.temp }}/*.zip"
+        name: ${{ inputs.artifact-name-prefix }}-fdd-any
+        path: "${{ runner.temp }}/*-fdd-any.zip"
         if-no-files-found: error
         
-    - name: Upload Artifacts - Release Files - Tar
+    - name: Publish artifacts [fdd-any] tar
       if: ${{ inputs.is-tool }}
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ inputs.artifact-name-prefix }}
-        path: "${{ runner.temp }}/*.tar.gz"
+        name: ${{ inputs.artifact-name-prefix }}-fdd-any
+        path: "${{ runner.temp }}/*-fdd-any.tar.gz"
         if-no-files-found: error
 
+    - name: Publish artifacts [fde-win-x64]
+      if: ${{ inputs.is-tool }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.artifact-name-prefix }}-fde-win-x64
+        path: "${{ runner.temp }}/*-fde-win-x64.zip"
+        if-no-files-found: error
+
+    - name: Publish artifacts [fde-osx-x64]
+      if: ${{ inputs.is-tool }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.artifact-name-prefix }}-fde-osx-x64
+        path: "${{ runner.temp }}/*-fde-osx-x64.tar.gz"
+        if-no-files-found: error
+
+    - name: Publish artifacts [fde-linux-x64]
+      if: ${{ inputs.is-tool }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.artifact-name-prefix }}-fde-linux-x64
+        path: "${{ runner.temp }}/*-fde-linux-x64.tar.gz"
+        if-no-files-found: error
+
+    - name: Publish artifacts [scd-win-x64]
+      if: ${{ inputs.is-tool }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.artifact-name-prefix }}-scd-win-x64
+        path: "${{ runner.temp }}/*-scd-win-x64.zip"
+        if-no-files-found: error
+
+    - name: Publish artifacts [scd-osx-x64]
+      if: ${{ inputs.is-tool }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.artifact-name-prefix }}-scd-osx-x64
+        path: "${{ runner.temp }}/*-scd-osx-x64.tar.gz"
+        if-no-files-found: error
+
+    - name: Publish artifacts [scd-linux-x64]
+      if: ${{ inputs.is-tool }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.artifact-name-prefix }}-scd-linux-x64
+        path: "${{ runner.temp }}/*-scd-linux-x64.tar.gz"
+        if-no-files-found: error
+        
     - name: Upload Artifacts - Nuget
       uses: actions/upload-artifact@v3
       with:
