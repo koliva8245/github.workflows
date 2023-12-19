@@ -115,10 +115,18 @@ jobs:
         echo "New version - $version"
         echo "VERSION=$version" | Out-File -FilePath ${{ env.PACKAGE_VERSION_FILE }} -Encoding utf8 -Append
         
-    - name: Publish
+    - name: Publish release [fdd-any]
       if: ${{ inputs.is-tool }}
       run: dotnet publish ${{ inputs.main-project }} -o $env:PUBLISH_ANY_PATH
 
+    - name: Nuget Pack (no-build)
+      if: ${{ inputs.is-tool }}
+      run: dotnet pack ${{ inputs.main-project }} --no-build -o $env:NUPKG_PATH  
+
+    - name: Nuget Pack
+      if: ${{ !inputs.is-tool }}
+      run: dotnet pack ${{ inputs.main-project }} -o $env:NUPKG_PATH  
+      
     - name: FDE and SCD Prep
       if: ${{ inputs.is-tool }}     
       shell: pwsh
@@ -149,15 +157,7 @@ jobs:
     - name: Publish release [scd-linux-x64]
       if: ${{ inputs.is-tool }}
       run: dotnet publish ${{ inputs.main-project }} --self-contained true -r linux-x64 -o $env:PUBLISH_SCD_LINUX_PATH
-      
-    - name: Nuget Pack (no-build)
-      if: ${{ inputs.is-tool }}
-      run: dotnet pack ${{ inputs.main-project }} --no-build -o $env:NUPKG_PATH  
-
-    - name: Nuget Pack
-      if: ${{ !inputs.is-tool }}
-      run: dotnet pack ${{ inputs.main-project }} -o $env:NUPKG_PATH  
-      
+            
     - name: Cache publish files
       if: ${{ inputs.is-tool }}
       uses: actions/cache/save@v3
@@ -349,7 +349,7 @@ jobs:
         $parentPath = (Split-Path ${{ env.PUBLISH_SCD_LINUX_PATH }} -Parent)
         tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-linux-x64.tar.gz' -C $parentPath $lastPart
         
-    - name: Publish artifacts [fdd-any] zip
+    - name: Upload artifacts [fdd-any] zip
       if: ${{ inputs.is-tool }}
       uses: actions/upload-artifact@v3
       with:
@@ -357,7 +357,7 @@ jobs:
         path: "${{ runner.temp }}/*-fdd-any.zip"
         if-no-files-found: error
         
-    - name: Publish artifacts [fdd-any] tar
+    - name: Upload artifacts [fdd-any] tar
       if: ${{ inputs.is-tool }}
       uses: actions/upload-artifact@v3
       with:
@@ -365,7 +365,7 @@ jobs:
         path: "${{ runner.temp }}/*-fdd-any.tar.gz"
         if-no-files-found: error
 
-    - name: Publish artifacts [fde-win-x64]
+    - name: Upload artifacts [fde-win-x64]
       if: ${{ inputs.is-tool }}
       uses: actions/upload-artifact@v3
       with:
@@ -373,7 +373,7 @@ jobs:
         path: "${{ runner.temp }}/*-fde-win-x64.zip"
         if-no-files-found: error
 
-    - name: Publish artifacts [fde-osx-x64]
+    - name: Upload artifacts [fde-osx-x64]
       if: ${{ inputs.is-tool }}
       uses: actions/upload-artifact@v3
       with:
@@ -381,7 +381,7 @@ jobs:
         path: "${{ runner.temp }}/*-fde-osx-x64.tar.gz"
         if-no-files-found: error
 
-    - name: Publish artifacts [fde-linux-x64]
+    - name: Upload artifacts [fde-linux-x64]
       if: ${{ inputs.is-tool }}
       uses: actions/upload-artifact@v3
       with:
@@ -389,7 +389,7 @@ jobs:
         path: "${{ runner.temp }}/*-fde-linux-x64.tar.gz"
         if-no-files-found: error
 
-    - name: Publish artifacts [scd-win-x64]
+    - name: Upload artifacts [scd-win-x64]
       if: ${{ inputs.is-tool }}
       uses: actions/upload-artifact@v3
       with:
@@ -397,7 +397,7 @@ jobs:
         path: "${{ runner.temp }}/*-scd-win-x64.zip"
         if-no-files-found: error
 
-    - name: Publish artifacts [scd-osx-x64]
+    - name: Upload artifacts [scd-osx-x64]
       if: ${{ inputs.is-tool }}
       uses: actions/upload-artifact@v3
       with:
@@ -405,7 +405,7 @@ jobs:
         path: "${{ runner.temp }}/*-scd-osx-x64.tar.gz"
         if-no-files-found: error
 
-    - name: Publish artifacts [scd-linux-x64]
+    - name: Upload artifacts [scd-linux-x64]
       if: ${{ inputs.is-tool }}
       uses: actions/upload-artifact@v3
       with:
