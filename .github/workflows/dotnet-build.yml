@@ -211,8 +211,23 @@ jobs:
         Expand-Archive -Force CodeSignTool.zip
         Remove-Item CodeSignTool.zip
         Add-Content -Path .\CodeSignTool\conf\code_sign_tool.properties -Value "`nTSA_LEGACY_URL=http://ts.ssl.com/legacy"
+
+    - name: Sign artifacts (tool)
+      if: ${{ inputs.is-tool }}
+      run: |
+        $path = $env:NUPKG_PATH -replace "/", "\"
+        $relativePath = $path +  '\' + '${{ inputs.artifact-name-prefix }}' + '.' + '${{ env.version }}' + '.nupkg'
+        $npath = Resolve-Path -Path (Join-Path -Path '${{ github.workspace }}' -ChildPath $relativePath)
+        echo "$npath"
         
-    - name: Sign artifacts
+        cd CodeSignTool
+        .\CodeSignTool.bat sign -username=${{ secrets.es-username }} -password=${{ secrets.es-password }} -credential_id=${{ secrets.es-credential-id }} -totp_secret=${{ secrets.es-totp-secret }} -input_file_path="$npath" -override
+        
+        $outputN = nuget verify -Signatures $npath
+        if ($outputN -like '*failed*') { exit 1 }
+        
+    - name: Sign artifacts (library)
+      if: ${{ !inputs.is-tool }}
       run: |
         $path = $env:NUPKG_PATH -replace "/", "\"
         $relativePath = $path +  '\' + '${{ inputs.artifact-name-prefix }}' + '.' + '${{ env.version }}' + '.nupkg'
@@ -227,6 +242,7 @@ jobs:
         cd CodeSignTool
         .\CodeSignTool.bat sign -username=${{ secrets.es-username }} -password=${{ secrets.es-password }} -credential_id=${{ secrets.es-credential-id }} -totp_secret=${{ secrets.es-totp-secret }} -input_file_path="$npath" -override
         .\CodeSignTool.bat sign -username=${{ secrets.es-username }} -password=${{ secrets.es-password }} -credential_id=${{ secrets.es-credential-id }} -totp_secret=${{ secrets.es-totp-secret }} -input_file_path="$tempSPath" -override
+        
         $outputN = nuget verify -Signatures $npath
         if ($outputN -like '*failed*') { exit 1 }
         $outputS = nuget verify -Signatures $tempSPath
