@@ -230,7 +230,6 @@ jobs:
       if: ${{ !inputs.is-tool }}
       run: |
         $path = $env:NUPKG_PATH -replace "/", "\"
-        $fullPath = Resolve-Path -Path (Join-Path -Path '${{ github.workspace }}' -ChildPath $path)
         $relativePath = $path +  '\' + '${{ inputs.artifact-name-prefix }}' + '.' + '${{ env.version }}' + '.nupkg'
         $npath = Resolve-Path -Path (Join-Path -Path '${{ github.workspace }}' -ChildPath $relativePath)
         echo "$npath"
@@ -241,7 +240,8 @@ jobs:
         echo "$tempSPath"
 
         cd CodeSignTool
-        .\CodeSignTool.bat batch_sign -username=${{ secrets.es-username }} -password=${{ secrets.es-password }} -credential_id=${{ secrets.es-credential-id }} -totp_secret=${{ secrets.es-totp-secret }} -input_dir_path="$fullPath"
+        .\CodeSignTool.bat sign -username=${{ secrets.es-username }} -password=${{ secrets.es-password }} -credential_id=${{ secrets.es-credential-id }} -totp_secret=${{ secrets.es-totp-secret }} -input_file_path="$npath" -override
+        .\CodeSignTool.bat sign -username=${{ secrets.es-username }} -password=${{ secrets.es-password }} -credential_id=${{ secrets.es-credential-id }} -totp_secret=${{ secrets.es-totp-secret }} -input_file_path="$tempSPath" -override
         
         $outputN = nuget verify -Signatures $npath
         if ($outputN -like '*failed*') { exit 1 }
