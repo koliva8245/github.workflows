@@ -240,7 +240,7 @@ jobs:
         echo "$tempSPath"
 
         cd CodeSignTool
-        .\CodeSignTool.bat batch_sign -username=${{ secrets.es-username }} -password=${{ secrets.es-password }} -credential_id=${{ secrets.es-credential-id }} -totp_secret=${{ secrets.es-totp-secret }} -input_dir_path="$path" -override
+        .\CodeSignTool.bat batch_sign -username=${{ secrets.es-username }} -password=${{ secrets.es-password }} -credential_id=${{ secrets.es-credential-id }} -totp_secret=${{ secrets.es-totp-secret }} -input_dir_path="$path"
         
         $outputN = nuget verify -Signatures $npath
         if ($outputN -like '*failed*') { exit 1 }
