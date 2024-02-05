@@ -367,7 +367,7 @@ jobs:
         
     - name: Upload artifacts [fdd-any] zip
       if: ${{ inputs.is-tool }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.artifact-name-prefix }}-fdd-any
         path: "${{ runner.temp }}/*-fdd-any.zip"
@@ -375,7 +375,7 @@ jobs:
         
     - name: Upload artifacts [fdd-any] tar
       if: ${{ inputs.is-tool }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.artifact-name-prefix }}-fdd-any
         path: "${{ runner.temp }}/*-fdd-any.tar.gz"
@@ -383,7 +383,7 @@ jobs:
 
     - name: Upload artifacts [fde-win-x64]
       if: ${{ inputs.is-tool }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.artifact-name-prefix }}-fde-win-x64
         path: "${{ runner.temp }}/*-fde-win-x64.zip"
@@ -391,7 +391,7 @@ jobs:
 
     - name: Upload artifacts [fde-osx-x64]
       if: ${{ inputs.is-tool }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.artifact-name-prefix }}-fde-osx-x64
         path: "${{ runner.temp }}/*-fde-osx-x64.tar.gz"
@@ -399,7 +399,7 @@ jobs:
 
     - name: Upload artifacts [fde-linux-x64]
       if: ${{ inputs.is-tool }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.artifact-name-prefix }}-fde-linux-x64
         path: "${{ runner.temp }}/*-fde-linux-x64.tar.gz"
@@ -407,7 +407,7 @@ jobs:
 
     - name: Upload artifacts [scd-win-x64]
       if: ${{ inputs.is-tool }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.artifact-name-prefix }}-scd-win-x64
         path: "${{ runner.temp }}/*-scd-win-x64.zip"
@@ -415,7 +415,7 @@ jobs:
 
     - name: Upload artifacts [scd-osx-x64]
       if: ${{ inputs.is-tool }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.artifact-name-prefix }}-scd-osx-x64
         path: "${{ runner.temp }}/*-scd-osx-x64.tar.gz"
@@ -423,7 +423,7 @@ jobs:
 
     - name: Upload artifacts [scd-linux-x64]
       if: ${{ inputs.is-tool }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.artifact-name-prefix }}-scd-linux-x64
         path: "${{ runner.temp }}/*-scd-linux-x64.tar.gz"
