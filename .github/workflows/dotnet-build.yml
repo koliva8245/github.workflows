@@ -57,7 +57,7 @@ jobs:
         
     - name: Cache checkout
       if: ${{ matrix.cache }}
-      uses: actions/cache/save@v3
+      uses: actions/cache/save@v4
       with:
         path: ${{ github.workspace }}
         key: checkout-${{ github.run_id }}-${{ github.run_attempt }}
@@ -79,7 +79,7 @@ jobs:
     steps:
     - name: Cache checkout
       id: cache-checkout
-      uses: actions/cache/restore@v3
+      uses: actions/cache/restore@v4
       with:
         path: ${{ github.workspace }}
         key: checkout-${{ github.run_id }}-${{ github.run_attempt }}
@@ -160,7 +160,7 @@ jobs:
             
     - name: Cache publish files
       if: ${{ inputs.is-tool }}
-      uses: actions/cache/save@v3
+      uses: actions/cache/save@v4
       with:
         path: |
           ${{ env.PUBLISH_ANY_PATH }}
@@ -174,7 +174,7 @@ jobs:
         enableCrossOsArchive: true
 
     - name: Cache nuget packages
-      uses: actions/cache/save@v3
+      uses: actions/cache/save@v4
       with:
         path: |
           ${{ env.NUPKG_PATH }}
@@ -189,7 +189,7 @@ jobs:
     steps:
     - name: Restore nuget file
       id: nuget-cache
-      uses: actions/cache/restore@v3
+      uses: actions/cache/restore@v4
       with:
         path: |
           ${{ env.NUPKG_PATH }}
@@ -253,7 +253,7 @@ jobs:
         echo "$spath"
         
     - name: Cache signed nuget packages
-      uses: actions/cache/save@v3
+      uses: actions/cache/save@v4
       with:
         path: |
           ${{ env.NUPKG_PATH }}
@@ -269,7 +269,7 @@ jobs:
     - name: Restore publish files
       if: ${{ inputs.is-tool }}
       id: publish-cache
-      uses: actions/cache/restore@v3
+      uses: actions/cache/restore@v4
       with:
         path: |
           ${{ env.PUBLISH_ANY_PATH }}
@@ -285,7 +285,7 @@ jobs:
         
     - name: Restore signed nuget file
       id: nuget-signed-cache
-      uses: actions/cache/restore@v3
+      uses: actions/cache/restore@v4
       if: github.ref == 'refs/heads/main'
       with:
         path: |
@@ -297,7 +297,7 @@ jobs:
 
     - name: Restore nuget file
       id: nuget-cache
-      uses: actions/cache/restore@v3
+      uses: actions/cache/restore@v4
       if: github.ref != 'refs/heads/main'
       with:
         path: |
