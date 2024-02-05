@@ -29,7 +29,7 @@ jobs:
       url: '${{ inputs.nuget-publish-url }}'
     steps:
       - name: Download artifacts
-        uses: dawidd6/action-download-artifact@v4
+        uses: dawidd6/action-download-artifact@v3
         with:
           github_token: ${{ secrets.token }}
           workflow: ${{ inputs.artificats-workflow }}
