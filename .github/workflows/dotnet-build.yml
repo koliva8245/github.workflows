@@ -369,7 +369,7 @@ jobs:
       if: ${{ inputs.is-tool }}
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.artifact-name-prefix }}-fdd-any
+        name: ${{ inputs.artifact-name-prefix }}-fdd-any (zip)
         path: "${{ runner.temp }}/*-fdd-any.zip"
         if-no-files-found: error
         
@@ -377,7 +377,7 @@ jobs:
       if: ${{ inputs.is-tool }}
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.artifact-name-prefix }}-fdd-any
+        name: ${{ inputs.artifact-name-prefix }}-fdd-any (tar)
         path: "${{ runner.temp }}/*-fdd-any.tar.gz"
         if-no-files-found: error
 
