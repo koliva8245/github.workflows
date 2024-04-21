@@ -103,7 +103,7 @@ jobs:
       run: | 
         $xml = [Xml] (Get-Content ${{ inputs.main-project }})
         $version = $xml.Project.PropertyGroup.Version
-        echo "Current full version - $version"
+        echo "Got version from project - $version"
         $first_part_version = $version
         
         $split_index = $version.IndexOf('-')
@@ -112,7 +112,9 @@ jobs:
           $first_part_version = $version.Substring(0, $split_index)
         }
                 
-        $new_version = $first_part_version + "-build.${{ github.run_number }}"        
+        $new_version = $first_part_version + "-build.${{ github.run_number }}"
+        echo "New version - $new_version"
+        echo "Old version - $version"
         $content = Get-Content ${{ inputs.main-project }}
         $content | % { $_.Replace("<Version>$version</Version>", "<Version>$new_version</Version>") } | Set-Content ${{ inputs.main-project }}
 
