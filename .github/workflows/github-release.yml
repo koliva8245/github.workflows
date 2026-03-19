@@ -33,7 +33,7 @@ jobs:
       url: '${{ inputs.github-release-url }}'
     steps:
       - name: Download artifacts
-        uses: dawidd6/action-download-artifact@v3
+        uses: dawidd6/action-download-artifact@v19
         with:
           github_token: ${{ secrets.token }}
           workflow: ${{ inputs.artificats-workflow }}
@@ -50,7 +50,7 @@ jobs:
           echo "VERSION=$match" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           body: |
             ## What's New
