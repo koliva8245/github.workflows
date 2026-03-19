@@ -58,7 +58,7 @@ jobs:
         
     - name: Cache checkout
       if: ${{ matrix.cache }}
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v5
       with:
         path: ${{ github.workspace }}
         key: checkout-${{ github.run_id }}-${{ github.run_attempt }}
@@ -80,7 +80,7 @@ jobs:
     steps:
     - name: Cache checkout
       id: cache-checkout
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         path: ${{ github.workspace }}
         key: checkout-${{ github.run_id }}-${{ github.run_attempt }}
@@ -174,7 +174,7 @@ jobs:
             
     - name: Cache publish files
       if: ${{ inputs.is-tool }}
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v5
       with:
         path: |
           ${{ env.PUBLISH_ANY_PATH }}
@@ -188,7 +188,7 @@ jobs:
         enableCrossOsArchive: true
 
     - name: Cache nuget packages
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v5
       with:
         path: |
           ${{ env.NUPKG_PATH }}
@@ -203,7 +203,7 @@ jobs:
     steps:
     - name: Restore nuget file
       id: nuget-cache
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         path: |
           ${{ env.NUPKG_PATH }}
@@ -267,7 +267,7 @@ jobs:
         echo "$spath"
         
     - name: Cache signed nuget packages
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v5
       with:
         path: |
           ${{ env.NUPKG_PATH }}
@@ -283,7 +283,7 @@ jobs:
     - name: Restore publish files
       if: ${{ inputs.is-tool }}
       id: publish-cache
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         path: |
           ${{ env.PUBLISH_ANY_PATH }}
@@ -299,7 +299,7 @@ jobs:
         
     - name: Restore signed nuget file
       id: nuget-signed-cache
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       if: github.ref == 'refs/heads/main'
       with:
         path: |
@@ -311,7 +311,7 @@ jobs:
 
     - name: Restore nuget file
       id: nuget-cache
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       if: github.ref != 'refs/heads/main'
       with:
         path: |
@@ -381,7 +381,7 @@ jobs:
         
     - name: Upload artifacts [fdd-any] zip
       if: ${{ inputs.is-tool }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ inputs.artifact-name-prefix }}-fdd-any (zip)
         path: "${{ runner.temp }}/*-fdd-any.zip"
@@ -389,7 +389,7 @@ jobs:
         
     - name: Upload artifacts [fdd-any] tar
       if: ${{ inputs.is-tool }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ inputs.artifact-name-prefix }}-fdd-any (tar)
         path: "${{ runner.temp }}/*-fdd-any.tar.gz"
@@ -397,7 +397,7 @@ jobs:
 
     - name: Upload artifacts [fde-win-x64]
       if: ${{ inputs.is-tool }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ inputs.artifact-name-prefix }}-fde-win-x64
         path: "${{ runner.temp }}/*-fde-win-x64.zip"
@@ -405,7 +405,7 @@ jobs:
 
     - name: Upload artifacts [fde-osx-x64]
       if: ${{ inputs.is-tool }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ inputs.artifact-name-prefix }}-fde-osx-x64
         path: "${{ runner.temp }}/*-fde-osx-x64.tar.gz"
@@ -413,7 +413,7 @@ jobs:
 
     - name: Upload artifacts [fde-linux-x64]
       if: ${{ inputs.is-tool }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ inputs.artifact-name-prefix }}-fde-linux-x64
         path: "${{ runner.temp }}/*-fde-linux-x64.tar.gz"
@@ -421,7 +421,7 @@ jobs:
 
     - name: Upload artifacts [scd-win-x64]
       if: ${{ inputs.is-tool }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ inputs.artifact-name-prefix }}-scd-win-x64
         path: "${{ runner.temp }}/*-scd-win-x64.zip"
@@ -429,7 +429,7 @@ jobs:
 
     - name: Upload artifacts [scd-osx-x64]
       if: ${{ inputs.is-tool }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ inputs.artifact-name-prefix }}-scd-osx-x64
         path: "${{ runner.temp }}/*-scd-osx-x64.tar.gz"
@@ -437,14 +437,14 @@ jobs:
 
     - name: Upload artifacts [scd-linux-x64]
       if: ${{ inputs.is-tool }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ inputs.artifact-name-prefix }}-scd-linux-x64
         path: "${{ runner.temp }}/*-scd-linux-x64.tar.gz"
         if-no-files-found: error
         
     - name: Upload Artifacts - Nuget
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ inputs.artifact-name-prefix }}-Nuget
         path: ${{ env.NUPKG_PATH }}/
