@@ -131,7 +131,7 @@ jobs:
         
     - name: Publish release [fdd-any]
       if: ${{ inputs.is-tool }}
-      run: dotnet publish ${{ inputs.main-project }} -o $env:PUBLISH_ANY_PATH
+      run: dotnet publish ${{ inputs.main-project }} -p:UseAppHost=false -o $env:PUBLISH_ANY_PATH
 
     - name: Nuget Pack (no-build)
       if: ${{ inputs.is-tool }}
@@ -150,27 +150,27 @@ jobs:
         
     - name: Publish release [fde-win-x64]
       if: ${{ inputs.is-tool }}
-      run: dotnet publish ${{ inputs.main-project }} --self-contained false -r win-x64 -o $env:PUBLISH_FDE_WIN_PATH
+      run: dotnet publish ${{ inputs.main-project }} --no-self-contained -r win-x64 -o $env:PUBLISH_FDE_WIN_PATH
 
     - name: Publish release [fde-osx-x64]
       if: ${{ inputs.is-tool }}
-      run: dotnet publish ${{ inputs.main-project }} --self-contained false -r osx-x64 -o $env:PUBLISH_FDE_OSX_PATH
+      run: dotnet publish ${{ inputs.main-project }} --no-self-contained -r osx-x64 -o $env:PUBLISH_FDE_OSX_PATH
 
     - name: Publish release [fde-linux-x64]
       if: ${{ inputs.is-tool }}
-      run: dotnet publish ${{ inputs.main-project }} --self-contained false -r linux-x64 -o $env:PUBLISH_FDE_LINUX_PATH
+      run: dotnet publish ${{ inputs.main-project }} --no-self-contained -r linux-x64 -o $env:PUBLISH_FDE_LINUX_PATH
 
     - name: Publish release [scd-win-x64]
       if: ${{ inputs.is-tool }}
-      run: dotnet publish ${{ inputs.main-project }} --self-contained true -r win-x64 -o $env:PUBLISH_SCD_WIN_PATH
+      run: dotnet publish ${{ inputs.main-project }} --self-contained -r win-x64 -o $env:PUBLISH_SCD_WIN_PATH
 
     - name: Publish release [scd-osx-x64]
       if: ${{ inputs.is-tool }}
-      run: dotnet publish ${{ inputs.main-project }} --self-contained true -r osx-x64 -o $env:PUBLISH_SCD_OSX_PATH
+      run: dotnet publish ${{ inputs.main-project }} --self-contained -r osx-x64 -o $env:PUBLISH_SCD_OSX_PATH
 
     - name: Publish release [scd-linux-x64]
       if: ${{ inputs.is-tool }}
-      run: dotnet publish ${{ inputs.main-project }} --self-contained true -r linux-x64 -o $env:PUBLISH_SCD_LINUX_PATH
+      run: dotnet publish ${{ inputs.main-project }} --self-contained -r linux-x64 -o $env:PUBLISH_SCD_LINUX_PATH
             
     - name: Cache publish files
       if: ${{ inputs.is-tool }}
