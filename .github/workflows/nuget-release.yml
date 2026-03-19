@@ -29,7 +29,7 @@ jobs:
       url: '${{ inputs.nuget-publish-url }}'
     steps:
       - name: Download artifacts
-        uses: dawidd6/action-download-artifact@v3
+        uses: dawidd6/action-download-artifact@v19
         with:
           github_token: ${{ secrets.token }}
           workflow: ${{ inputs.artificats-workflow }}
@@ -38,9 +38,9 @@ jobs:
           path: ${{ env.ARTIFACTS }}
           
       - name: Use dotnet sdk
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
           
       - name: Publish nuget
         run: dotnet nuget push ${{ env.ARTIFACTS }}/**/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json  
