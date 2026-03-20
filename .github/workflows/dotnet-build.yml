@@ -28,11 +28,17 @@ on:
 env:
   PUBLISH_ANY_PATH: ./bin/publish/any
   PUBLISH_FDE_WIN_PATH: ./bin/publish/fde/win-x64
+  PUBLISH_FDE_WIN_ARM64_PATH: ./bin/publish/fde/win-arm64
   PUBLISH_FDE_OSX_PATH: ./bin/publish/fde/osx-x64
+  PUBLISH_FDE_OSX_ARM64_PATH: ./bin/publish/fde/osx-arm64
   PUBLISH_FDE_LINUX_PATH: ./bin/publish/fde/linux-x64
+  PUBLISH_FDE_LINUX_ARM64_PATH: ./bin/publish/fde/linux-arm64
   PUBLISH_SCD_WIN_PATH: ./bin/publish/scd/win-x64
+  PUBLISH_SCD_WIN_ARM64_PATH: ./bin/publish/scd/win-arm64
   PUBLISH_SCD_OSX_PATH: ./bin/publish/scd/osx-x64
+  PUBLISH_SCD_OSX_ARM64_PATH: ./bin/publish/scd/osx-arm64
   PUBLISH_SCD_LINUX_PATH: ./bin/publish/scd/linux-x64
+  PUBLISH_SCD_LINUX_ARM64_PATH: ./bin/publish/scd/linux-arm64
   NUPKG_PATH: ./bin/nupkg/any
   PACKAGE_VERSION_FILE: ./version.txt
   
@@ -40,10 +46,10 @@ jobs:
   build-test:
     strategy:
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        os: [windows-latest, windows-11-arm, macos-latest, ubuntu-latest, ubuntu-24.04-arm]
         configuration: [Debug, Release]
         include:
-          - os: windows-latest
+          - os: ubuntu-latest
             configuration: Debug
             cache: true
 
@@ -76,7 +82,7 @@ jobs:
            
   package:
     needs: build-test
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
     - name: Cache checkout
       id: cache-checkout
@@ -98,80 +104,87 @@ jobs:
         dotnet-version: ${{ inputs.dotnet-sdk }}
 
     - name: Set non-main branch version build number
-      shell: pwsh
       if: github.ref != 'refs/heads/main'
       run: | 
-        $xml = [Xml] (Get-Content ${{ inputs.main-project }})
-        $version = $xml.Project.PropertyGroup.Version
-        $version = "$version".Trim()
+        version=$(grep -oPm1 "(?<=<Version>)[^<]+" ${{ inputs.main-project }})
         echo "Got version from project - '$version'"
-        
-        $first_part_version = $version
-        
-        $split_index = $version.IndexOf('-')
-        if ($split_index -gt -1)
-        {
-          $first_part_version = $version.Substring(0, $split_index)
-        }
-                
-        $new_version = $first_part_version + "-build.${{ github.run_number }}"
+
+        first_part_version=$version
+        if [[ "$version" == *"-"* ]]; then
+          first_part_version="${version%%-*}"
+        fi
+
+        new_version="${first_part_version}-build.${{ github.run_number }}"
         echo "New version - '$new_version'"
         echo "Old version - '$version'"
-        $content = Get-Content ${{ inputs.main-project }}
-        $content | % { $_.Replace("<Version>$version</Version>", "<Version>$new_version</Version>") } | Set-Content ${{ inputs.main-project }}
+        sed -i "s|<Version>$version</Version>|<Version>$new_version</Version>|" ${{ inputs.main-project }}
 
     - name: Get package version
-      shell: pwsh
       run: |
-        $xml = [Xml] (Get-Content ${{ inputs.main-project }})
-        $version = $xml.Project.PropertyGroup.Version
-        $version = "$version".Trim()
+        version=$(grep -oPm1 "(?<=<Version>)[^<]+" ${{ inputs.main-project }})
         echo "Got version - '$version'"
-        echo "VERSION=$version" | Out-File -FilePath ${{ env.PACKAGE_VERSION_FILE }} -Encoding utf8 -Append
+        echo "VERSION=$version" >> ${{ env.PACKAGE_VERSION_FILE }}
         
     - name: Publish release [fdd-any]
       if: ${{ inputs.is-tool }}
-      run: dotnet publish ${{ inputs.main-project }} -p:UseAppHost=false -o $env:PUBLISH_ANY_PATH
-
-    - name: Nuget Pack (no-build)
-      if: ${{ inputs.is-tool }}
-      run: dotnet pack ${{ inputs.main-project }} --no-build -o $env:NUPKG_PATH  
+      run: dotnet publish ${{ inputs.main-project }} -p:UseAppHost=false -o $PUBLISH_ANY_PATH
 
     - name: Nuget Pack
-      if: ${{ !inputs.is-tool }}
-      run: dotnet pack ${{ inputs.main-project }} -o $env:NUPKG_PATH  
+      run: dotnet pack ${{ inputs.main-project }} -o $NUPKG_PATH  
       
     - name: FDE and SCD Prep
       if: ${{ inputs.is-tool }}     
-      shell: pwsh
       run: |
-        $content = Get-Content ${{ inputs.main-project }}
-        $content | % { $_.Replace("<PublishSingleFile>false</PublishSingleFile>", "<PublishSingleFile>true</PublishSingleFile>") } | Set-Content ${{ inputs.main-project }}
+        sed -i "s|<PublishSingleFile>false</PublishSingleFile>|<PublishSingleFile>true</PublishSingleFile>|" ${{ inputs.main-project }}
         
     - name: Publish release [fde-win-x64]
       if: ${{ inputs.is-tool }}
-      run: dotnet publish ${{ inputs.main-project }} --no-self-contained -r win-x64 -o $env:PUBLISH_FDE_WIN_PATH
+      run: dotnet publish ${{ inputs.main-project }} --no-self-contained -r win-x64 -o $PUBLISH_FDE_WIN_PATH
+
+    - name: Publish release [fde-win-arm64]
+      if: ${{ inputs.is-tool }}
+      run: dotnet publish ${{ inputs.main-project }} --no-self-contained -r win-arm64 -o $PUBLISH_FDE_WIN_ARM64_PATH
 
     - name: Publish release [fde-osx-x64]
       if: ${{ inputs.is-tool }}
-      run: dotnet publish ${{ inputs.main-project }} --no-self-contained -r osx-x64 -o $env:PUBLISH_FDE_OSX_PATH
+      run: dotnet publish ${{ inputs.main-project }} --no-self-contained -r osx-x64 -o $PUBLISH_FDE_OSX_PATH
+      
+    - name: Publish release [fde-osx-arm64]
+      if: ${{ inputs.is-tool }}
+      run: dotnet publish ${{ inputs.main-project }} --no-self-contained -r osx-arm64 -o $PUBLISH_FDE_OSX_ARM64_PATH
 
     - name: Publish release [fde-linux-x64]
       if: ${{ inputs.is-tool }}
-      run: dotnet publish ${{ inputs.main-project }} --no-self-contained -r linux-x64 -o $env:PUBLISH_FDE_LINUX_PATH
-
+      run: dotnet publish ${{ inputs.main-project }} --no-self-contained -r linux-x64 -o $PUBLISH_FDE_LINUX_PATH
+      
+    - name: Publish release [fde-linux-arm64]
+      if: ${{ inputs.is-tool }}
+      run: dotnet publish ${{ inputs.main-project }} --no-self-contained -r linux-arm64 -o $PUBLISH_FDE_LINUX_ARM64_PATH
+      
     - name: Publish release [scd-win-x64]
       if: ${{ inputs.is-tool }}
-      run: dotnet publish ${{ inputs.main-project }} --self-contained -r win-x64 -o $env:PUBLISH_SCD_WIN_PATH
+      run: dotnet publish ${{ inputs.main-project }} --self-contained -r win-x64 -o $PUBLISH_SCD_WIN_PATH
 
+    - name: Publish release [scd-win-arm64]
+      if: ${{ inputs.is-tool }}
+      run: dotnet publish ${{ inputs.main-project }} --self-contained -r win-arm64 -o $PUBLISH_SCD_WIN_ARM64_PATH
+      
     - name: Publish release [scd-osx-x64]
       if: ${{ inputs.is-tool }}
-      run: dotnet publish ${{ inputs.main-project }} --self-contained -r osx-x64 -o $env:PUBLISH_SCD_OSX_PATH
+      run: dotnet publish ${{ inputs.main-project }} --self-contained -r osx-x64 -o $PUBLISH_SCD_OSX_PATH
 
+    - name: Publish release [scd-osx-arm64]
+      if: ${{ inputs.is-tool }}
+      run: dotnet publish ${{ inputs.main-project }} --self-contained -r osx-arm64 -o $PUBLISH_SCD_OSX_ARM64_PATH
+      
     - name: Publish release [scd-linux-x64]
       if: ${{ inputs.is-tool }}
-      run: dotnet publish ${{ inputs.main-project }} --self-contained -r linux-x64 -o $env:PUBLISH_SCD_LINUX_PATH
-            
+      run: dotnet publish ${{ inputs.main-project }} --self-contained -r linux-x64 -o $PUBLISH_SCD_LINUX_PATH
+
+    - name: Publish release [scd-linux-arm64]
+      if: ${{ inputs.is-tool }}
+      run: dotnet publish ${{ inputs.main-project }} --self-contained -r linux-arm64 -o $PUBLISH_SCD_LINUX_ARM64_PATH
+      
     - name: Cache publish files
       if: ${{ inputs.is-tool }}
       uses: actions/cache/save@v5
@@ -179,13 +192,18 @@ jobs:
         path: |
           ${{ env.PUBLISH_ANY_PATH }}
           ${{ env.PUBLISH_FDE_WIN_PATH }}
+          ${{ env.PUBLISH_FDE_WIN_ARM64_PATH }}
           ${{ env.PUBLISH_FDE_OSX_PATH }}
+          ${{ env.PUBLISH_FDE_OSX_ARM64_PATH }}
           ${{ env.PUBLISH_FDE_LINUX_PATH }}
+          ${{ env.PUBLISH_FDE_LINUX_ARM64_PATH }}
           ${{ env.PUBLISH_SCD_WIN_PATH }}
+          ${{ env.PUBLISH_SCD_WIN_ARM64_PATH }}
           ${{ env.PUBLISH_SCD_OSX_PATH }}
+          ${{ env.PUBLISH_SCD_OSX_ARM64_PATH }}
           ${{ env.PUBLISH_SCD_LINUX_PATH }}
+          ${{ env.PUBLISH_SCD_LINUX_ARM64_PATH }}
         key: publish-${{ github.run_id }}-${{ github.run_attempt }}
-        enableCrossOsArchive: true
 
     - name: Cache nuget packages
       uses: actions/cache/save@v5
@@ -194,11 +212,10 @@ jobs:
           ${{ env.NUPKG_PATH }}
           ${{ env.PACKAGE_VERSION_FILE }}
         key: nuget-${{ github.run_id }}-${{ github.run_attempt }}
-        enableCrossOsArchive: true
         
   sign-nuget:
     needs: package
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
     - name: Restore nuget file
@@ -209,63 +226,62 @@ jobs:
           ${{ env.NUPKG_PATH }}
           ${{ env.PACKAGE_VERSION_FILE }}
         key: nuget-${{ github.run_id }}-${{ github.run_attempt }}
-        enableCrossOsArchive: true
         fail-on-cache-miss: true
 
     - name: Get version
-      shell: bash
       run: |
         . version.txt
         echo $VERSION
         echo "version=$VERSION" | tr -d '\r\n' >> "$GITHUB_ENV"
         
-    - name: Download and Unzip CodeSignTool
-      run: |
-        Invoke-WebRequest -OutFile CodeSignTool.zip "https://www.ssl.com/download/codesigntool-for-windows/"
-        Expand-Archive -Force CodeSignTool.zip
-        Remove-Item CodeSignTool.zip
-        Add-Content -Path .\CodeSignTool\conf\code_sign_tool.properties -Value "`nTSA_LEGACY_URL=http://ts.ssl.com/legacy"
-
     - name: Sign artifacts (tool)
       if: ${{ inputs.is-tool }}
-      run: |
-        $path = $env:NUPKG_PATH -replace "/", "\"
-        $relativePath = $path +  '\' + '${{ inputs.artifact-name-prefix }}' + '.' + '${{ env.version }}' + '.nupkg'
-        $npath = Resolve-Path -Path (Join-Path -Path '${{ github.workspace }}' -ChildPath $relativePath)
-        echo "$npath"
-        
-        cd CodeSignTool
-        .\CodeSignTool.bat sign -username=${{ secrets.es-username }} -password=${{ secrets.es-password }} -credential_id=${{ secrets.es-credential-id }} -totp_secret=${{ secrets.es-totp-secret }} -input_file_path="$npath" -override
-        
-        $outputN = nuget verify -Signatures $npath
-        if ($outputN -like '*failed*') { exit 1 }
+      uses: sslcom/esigner-codesign@main
+      with:
+        command: sign
+        username: ${{ secrets.es-username }}
+        password: ${{ secrets.es-password }}
+        credential_id: ${{ secrets.es-credential-id }}
+        totp_secret: ${{ secrets.es-totp-secret }}
+        file_path: ${{ env.NUPKG_PATH }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.nupkg
+        override: true
         
     - name: Sign artifacts (library)
       if: ${{ !inputs.is-tool }}
+      uses: sslcom/esigner-codesign@main
+      with:
+        command: sign
+        username: ${{ secrets.es-username }}
+        password: ${{ secrets.es-password }}
+        credential_id: ${{ secrets.es-credential-id }}
+        totp_secret: ${{ secrets.es-totp-secret }}
+        file_path: ${{ env.NUPKG_PATH }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.nupkg
+        override: true
+
+    - name: Rename symbols package for signing
+      if: ${{ !inputs.is-tool }}
       run: |
-        $path = $env:NUPKG_PATH -replace "/", "\"
-        $relativePath = $path +  '\' + '${{ inputs.artifact-name-prefix }}' + '.' + '${{ env.version }}' + '.nupkg'
-        $npath = Resolve-Path -Path (Join-Path -Path '${{ github.workspace }}' -ChildPath $relativePath)
-        echo "$npath"
+        mv ${{ env.NUPKG_PATH }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.snupkg \
+           ${{ env.NUPKG_PATH }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.symbols.nupkg
 
-        $spath = $npath -replace '\.nupkg$', '.snupkg'
-        $tempSPath = $spath -replace '\.snupkg$', '.symbols.nupkg'
-        Rename-Item -Path $spath -NewName $tempSPath
-        echo "$tempSPath"
+    - name: Sign artifacts (library symbols)
+      if: ${{ !inputs.is-tool }}
+      uses: sslcom/esigner-codesign@main
+      with:
+        command: sign
+        username: ${{ secrets.es-username }}
+        password: ${{ secrets.es-password }}
+        credential_id: ${{ secrets.es-credential-id }}
+        totp_secret: ${{ secrets.es-totp-secret }}
+        file_path: ${{ env.NUPKG_PATH }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.symbols.nupkg
+        override: true
 
-        cd CodeSignTool
-        .\CodeSignTool.bat sign -username=${{ secrets.es-username }} -password=${{ secrets.es-password }} -credential_id=${{ secrets.es-credential-id }} -totp_secret=${{ secrets.es-totp-secret }} -input_file_path="$npath" -override
-        .\CodeSignTool.bat sign -username=${{ secrets.es-username }} -password=${{ secrets.es-password }} -credential_id=${{ secrets.es-credential-id }} -totp_secret=${{ secrets.es-totp-secret }} -input_file_path="$tempSPath" -override
-        
-        $outputN = nuget verify -Signatures $npath
-        if ($outputN -like '*failed*') { exit 1 }
-        $outputS = nuget verify -Signatures $tempSPath
-        if ($outputS -like '*failed*') { exit 1 }
-
-        cd ..
-        Rename-Item -Path $tempSPath -NewName $spath
-        echo "$spath"
-        
+    - name: Rename symbols package back
+      if: ${{ !inputs.is-tool }}
+      run: |
+        mv ${{ env.NUPKG_PATH }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.symbols.nupkg \
+           ${{ env.NUPKG_PATH }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.snupkg
+           
     - name: Cache signed nuget packages
       uses: actions/cache/save@v5
       with:
@@ -273,7 +289,6 @@ jobs:
           ${{ env.NUPKG_PATH }}
           ${{ env.PACKAGE_VERSION_FILE }}
         key: nuget-signed-${{ github.run_id }}-${{ github.run_attempt }}
-        enableCrossOsArchive: true
         
   upload-artifacts:
     needs: sign-nuget
@@ -288,13 +303,18 @@ jobs:
         path: |
           ${{ env.PUBLISH_ANY_PATH }}
           ${{ env.PUBLISH_FDE_WIN_PATH }}
+          ${{ env.PUBLISH_FDE_WIN_ARM64_PATH }}
           ${{ env.PUBLISH_FDE_OSX_PATH }}
+          ${{ env.PUBLISH_FDE_OSX_ARM64_PATH }}
           ${{ env.PUBLISH_FDE_LINUX_PATH }}
+          ${{ env.PUBLISH_FDE_LINUX_ARM64_PATH }}
           ${{ env.PUBLISH_SCD_WIN_PATH }}
+          ${{ env.PUBLISH_SCD_WIN_ARM64_PATH }}
           ${{ env.PUBLISH_SCD_OSX_PATH }}
+          ${{ env.PUBLISH_SCD_OSX_ARM64_PATH }}
           ${{ env.PUBLISH_SCD_LINUX_PATH }}
+          ${{ env.PUBLISH_SCD_LINUX_ARM64_PATH }}
         key: publish-${{ github.run_id }}-${{ github.run_attempt }}
-        enableCrossOsArchive: true
         fail-on-cache-miss: true
         
     - name: Restore signed nuget file
@@ -306,7 +326,6 @@ jobs:
           ${{ env.NUPKG_PATH }}
           ${{ env.PACKAGE_VERSION_FILE }}
         key: nuget-signed-${{ github.run_id }}-${{ github.run_attempt }}
-        enableCrossOsArchive: true
         fail-on-cache-miss: true
 
     - name: Restore nuget file
@@ -318,7 +337,6 @@ jobs:
           ${{ env.NUPKG_PATH }}
           ${{ env.PACKAGE_VERSION_FILE }}
         key: nuget-${{ github.run_id }}-${{ github.run_attempt }}
-        enableCrossOsArchive: true
         fail-on-cache-miss: true
       
     - name: Get version
@@ -343,6 +361,10 @@ jobs:
       if: ${{ inputs.is-tool }}
       run: 7z a -tzip '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-win-x64.zip' '${{ env.PUBLISH_FDE_WIN_PATH }}'
 
+    - name: Archive [fde-win-arm64]
+      if: ${{ inputs.is-tool }}
+      run: 7z a -tzip '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-win-arm64.zip' '${{ env.PUBLISH_FDE_WIN_ARM64_PATH }}'
+      
     - name:  Archive Archive [fde-osx-x64]
       if: ${{ inputs.is-tool }}
       shell: pwsh
@@ -351,6 +373,14 @@ jobs:
         $parentPath = (Split-Path ${{ env.PUBLISH_FDE_OSX_PATH }} -Parent)
         tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-osx-x64.tar.gz' -C $parentPath $lastPart
 
+    - name:  Archive Archive [fde-osx-arm64]
+      if: ${{ inputs.is-tool }}
+      shell: pwsh
+      run: |
+        $lastPart = (Split-Path ${{ env.PUBLISH_FDE_OSX_ARM64_PATH }} -Leaf)
+        $parentPath = (Split-Path ${{ env.PUBLISH_FDE_OSX_ARM64_PATH }} -Parent)
+        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-osx-arm64.tar.gz' -C $parentPath $lastPart
+        
     - name:  Archive [fde-linux-x64]
       if: ${{ inputs.is-tool }}
       shell: pwsh
@@ -358,11 +388,23 @@ jobs:
         $lastPart = (Split-Path ${{ env.PUBLISH_FDE_LINUX_PATH }} -Leaf)
         $parentPath = (Split-Path ${{ env.PUBLISH_FDE_LINUX_PATH }} -Parent)
         tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-linux-x64.tar.gz' -C $parentPath $lastPart
+
+    - name:  Archive [fde-linux-arm64]
+      if: ${{ inputs.is-tool }}
+      shell: pwsh
+      run: |
+        $lastPart = (Split-Path ${{ env.PUBLISH_FDE_LINUX_ARM64_PATH }} -Leaf)
+        $parentPath = (Split-Path ${{ env.PUBLISH_FDE_LINUX_ARM64_PATH }} -Parent)
+        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-linux-arm64.tar.gz' -C $parentPath $lastPart
         
     - name: Archive [scd-win-x64]
       if: ${{ inputs.is-tool }}
       run: 7z a -tzip '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-win-x64.zip' '${{ env.PUBLISH_SCD_WIN_PATH }}'
 
+    - name: Archive [scd-win-arm64]
+      if: ${{ inputs.is-tool }}
+      run: 7z a -tzip '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-win-arm64.zip' '${{ env.PUBLISH_SCD_WIN_ARM64_PATH }}'
+      
     - name:  Archive [scd-osx-x64]
       if: ${{ inputs.is-tool }}
       shell: pwsh
@@ -371,6 +413,14 @@ jobs:
         $parentPath = (Split-Path ${{ env.PUBLISH_SCD_OSX_PATH }} -Parent)
         tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-osx-x64.tar.gz' -C $parentPath $lastPart
 
+    - name:  Archive [scd-osx-arm64]
+      if: ${{ inputs.is-tool }}
+      shell: pwsh
+      run: |
+        $lastPart = (Split-Path ${{ env.PUBLISH_SCD_OSX_ARM64_PATH }} -Leaf)
+        $parentPath = (Split-Path ${{ env.PUBLISH_SCD_OSX_ARM64_PATH }} -Parent)
+        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-osx-arm64.tar.gz' -C $parentPath $lastPart
+        
     - name:  Archive [scd-linux-x64]
       if: ${{ inputs.is-tool }}
       shell: pwsh
@@ -378,6 +428,14 @@ jobs:
         $lastPart = (Split-Path ${{ env.PUBLISH_SCD_LINUX_PATH }} -Leaf)
         $parentPath = (Split-Path ${{ env.PUBLISH_SCD_LINUX_PATH }} -Parent)
         tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-linux-x64.tar.gz' -C $parentPath $lastPart
+
+    - name:  Archive [scd-linux-arm64]
+      if: ${{ inputs.is-tool }}
+      shell: pwsh
+      run: |
+        $lastPart = (Split-Path ${{ env.PUBLISH_SCD_LINUX_ARM64_PATH }} -Leaf)
+        $parentPath = (Split-Path ${{ env.PUBLISH_SCD_LINUX_ARM64_PATH }} -Parent)
+        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-linux-arm64.tar.gz' -C $parentPath $lastPart
         
     - name: Upload artifacts [fdd-any] zip
       if: ${{ inputs.is-tool }}
@@ -403,6 +461,14 @@ jobs:
         path: "${{ runner.temp }}/*-fde-win-x64.zip"
         if-no-files-found: error
 
+    - name: Upload artifacts [fde-win-arm64]
+      if: ${{ inputs.is-tool }}
+      uses: actions/upload-artifact@v6
+      with:
+        name: ${{ inputs.artifact-name-prefix }}-fde-win-arm64
+        path: "${{ runner.temp }}/*-fde-win-arm64.zip"
+        if-no-files-found: error
+        
     - name: Upload artifacts [fde-osx-x64]
       if: ${{ inputs.is-tool }}
       uses: actions/upload-artifact@v6
@@ -411,6 +477,14 @@ jobs:
         path: "${{ runner.temp }}/*-fde-osx-x64.tar.gz"
         if-no-files-found: error
 
+    - name: Upload artifacts [fde-osx-arm64]
+      if: ${{ inputs.is-tool }}
+      uses: actions/upload-artifact@v6
+      with:
+        name: ${{ inputs.artifact-name-prefix }}-fde-osx-arm64
+        path: "${{ runner.temp }}/*-fde-osx-arm64.tar.gz"
+        if-no-files-found: error
+        
     - name: Upload artifacts [fde-linux-x64]
       if: ${{ inputs.is-tool }}
       uses: actions/upload-artifact@v6
@@ -419,6 +493,14 @@ jobs:
         path: "${{ runner.temp }}/*-fde-linux-x64.tar.gz"
         if-no-files-found: error
 
+    - name: Upload artifacts [fde-linux-arm64]
+      if: ${{ inputs.is-tool }}
+      uses: actions/upload-artifact@v6
+      with:
+        name: ${{ inputs.artifact-name-prefix }}-fde-linux-arm64
+        path: "${{ runner.temp }}/*-fde-linux-arm64.tar.gz"
+        if-no-files-found: error
+        
     - name: Upload artifacts [scd-win-x64]
       if: ${{ inputs.is-tool }}
       uses: actions/upload-artifact@v6
@@ -427,6 +509,14 @@ jobs:
         path: "${{ runner.temp }}/*-scd-win-x64.zip"
         if-no-files-found: error
 
+    - name: Upload artifacts [scd-win-arm64]
+      if: ${{ inputs.is-tool }}
+      uses: actions/upload-artifact@v6
+      with:
+        name: ${{ inputs.artifact-name-prefix }}-scd-win-arm64
+        path: "${{ runner.temp }}/*-scd-win-arm64.zip"
+        if-no-files-found: error
+        
     - name: Upload artifacts [scd-osx-x64]
       if: ${{ inputs.is-tool }}
       uses: actions/upload-artifact@v6
@@ -435,12 +525,28 @@ jobs:
         path: "${{ runner.temp }}/*-scd-osx-x64.tar.gz"
         if-no-files-found: error
 
+    - name: Upload artifacts [scd-osx-arm64]
+      if: ${{ inputs.is-tool }}
+      uses: actions/upload-artifact@v6
+      with:
+        name: ${{ inputs.artifact-name-prefix }}-scd-osx-arm64
+        path: "${{ runner.temp }}/*-scd-osx-arm64.tar.gz"
+        if-no-files-found: error
+        
     - name: Upload artifacts [scd-linux-x64]
       if: ${{ inputs.is-tool }}
       uses: actions/upload-artifact@v6
       with:
         name: ${{ inputs.artifact-name-prefix }}-scd-linux-x64
         path: "${{ runner.temp }}/*-scd-linux-x64.tar.gz"
+        if-no-files-found: error
+
+    - name: Upload artifacts [scd-linux-arm64]
+      if: ${{ inputs.is-tool }}
+      uses: actions/upload-artifact@v6
+      with:
+        name: ${{ inputs.artifact-name-prefix }}-scd-linux-arm64
+        path: "${{ runner.temp }}/*-scd-linux-arm64.tar.gz"
         if-no-files-found: error
         
     - name: Upload Artifacts - Nuget
