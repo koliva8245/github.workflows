@@ -351,11 +351,10 @@ jobs:
 
     - name: Archive [fdd-any] tar
       if: ${{ inputs.is-tool }}
-      shell: pwsh
       run: |
-        $lastPart = (Split-Path ${{ env.PUBLISH_ANY_PATH }} -Leaf)
-        $parentPath = (Split-Path ${{ env.PUBLISH_ANY_PATH }} -Parent)
-        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fdd-any.tar.gz' -C $parentPath $lastPart
+        lastPart=$(basename ${{ env.PUBLISH_ANY_PATH }})
+        parentPath=$(dirname ${{ env.PUBLISH_ANY_PATH }})
+        tar -czvf "${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fdd-any.tar.gz" -C "$parentPath" "$lastPart"
 
     - name: Archive [fde-win-x64]
       if: ${{ inputs.is-tool }}
@@ -365,37 +364,33 @@ jobs:
       if: ${{ inputs.is-tool }}
       run: 7z a -tzip '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-win-arm64.zip' '${{ env.PUBLISH_FDE_WIN_ARM64_PATH }}'
       
-    - name:  Archive Archive [fde-osx-x64]
+    - name:  Archive [fde-osx-x64]
       if: ${{ inputs.is-tool }}
-      shell: pwsh
       run: |
-        $lastPart = (Split-Path ${{ env.PUBLISH_FDE_OSX_PATH }} -Leaf)
-        $parentPath = (Split-Path ${{ env.PUBLISH_FDE_OSX_PATH }} -Parent)
-        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-osx-x64.tar.gz' -C $parentPath $lastPart
+        lastPart=$(basename ${{ env.PUBLISH_FDE_OSX_PATH }})
+        parentPath=$(dirname ${{ env.PUBLISH_FDE_OSX_PATH }})
+        tar -czvf "${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-osx-x64.tar.gz" -C "$parentPath" "$lastPart"
 
-    - name:  Archive Archive [fde-osx-arm64]
+    - name:  Archive [fde-osx-arm64]
       if: ${{ inputs.is-tool }}
-      shell: pwsh
       run: |
-        $lastPart = (Split-Path ${{ env.PUBLISH_FDE_OSX_ARM64_PATH }} -Leaf)
-        $parentPath = (Split-Path ${{ env.PUBLISH_FDE_OSX_ARM64_PATH }} -Parent)
-        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-osx-arm64.tar.gz' -C $parentPath $lastPart
+        lastPart=$(basename ${{ env.PUBLISH_FDE_OSX_ARM64_PATH }})
+        parentPath=$(dirname ${{ env.PUBLISH_FDE_OSX_ARM64_PATH }})
+        tar -czvf "${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-osx-arm64.tar.gz" -C "$parentPath" "$lastPart"
         
     - name:  Archive [fde-linux-x64]
       if: ${{ inputs.is-tool }}
-      shell: pwsh
       run: |
-        $lastPart = (Split-Path ${{ env.PUBLISH_FDE_LINUX_PATH }} -Leaf)
-        $parentPath = (Split-Path ${{ env.PUBLISH_FDE_LINUX_PATH }} -Parent)
-        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-linux-x64.tar.gz' -C $parentPath $lastPart
+        lastPart=$(basename ${{ env.PUBLISH_FDE_LINUX_PATH }})
+        parentPath=$(dirname ${{ env.PUBLISH_FDE_LINUX_PATH }})
+        tar -czvf "${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-linux-x64.tar.gz" -C "$parentPath" "$lastPart"
 
     - name:  Archive [fde-linux-arm64]
       if: ${{ inputs.is-tool }}
-      shell: pwsh
       run: |
-        $lastPart = (Split-Path ${{ env.PUBLISH_FDE_LINUX_ARM64_PATH }} -Leaf)
-        $parentPath = (Split-Path ${{ env.PUBLISH_FDE_LINUX_ARM64_PATH }} -Parent)
-        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-linux-arm64.tar.gz' -C $parentPath $lastPart
+        lastPart=$(basename ${{ env.PUBLISH_FDE_LINUX_ARM64_PATH }})
+        parentPath=$(dirname ${{ env.PUBLISH_FDE_LINUX_ARM64_PATH }})
+        tar -czvf "${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-linux-arm64.tar.gz" -C "$parentPath" "$lastPart"
         
     - name: Archive [scd-win-x64]
       if: ${{ inputs.is-tool }}
@@ -407,35 +402,31 @@ jobs:
       
     - name:  Archive [scd-osx-x64]
       if: ${{ inputs.is-tool }}
-      shell: pwsh
       run: |
-        $lastPart = (Split-Path ${{ env.PUBLISH_SCD_OSX_PATH }} -Leaf)
-        $parentPath = (Split-Path ${{ env.PUBLISH_SCD_OSX_PATH }} -Parent)
-        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-osx-x64.tar.gz' -C $parentPath $lastPart
+        lastPart=$(basename ${{ env.PUBLISH_SCD_OSX_PATH }})
+        parentPath=$(dirname ${{ env.PUBLISH_SCD_OSX_PATH }})
+        tar -czvf "${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-osx-x64.tar.gz" -C "$parentPath" "$lastPart"
 
     - name:  Archive [scd-osx-arm64]
       if: ${{ inputs.is-tool }}
-      shell: pwsh
       run: |
-        $lastPart = (Split-Path ${{ env.PUBLISH_SCD_OSX_ARM64_PATH }} -Leaf)
-        $parentPath = (Split-Path ${{ env.PUBLISH_SCD_OSX_ARM64_PATH }} -Parent)
-        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-osx-arm64.tar.gz' -C $parentPath $lastPart
+        lastPart=$(basename ${{ env.PUBLISH_SCD_OSX_ARM64_PATH }})
+        parentPath=$(dirname ${{ env.PUBLISH_SCD_OSX_ARM64_PATH }})
+        tar -czvf "${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-osx-arm64.tar.gz" -C "$parentPath" "$lastPart"
         
     - name:  Archive [scd-linux-x64]
       if: ${{ inputs.is-tool }}
-      shell: pwsh
       run: |
-        $lastPart = (Split-Path ${{ env.PUBLISH_SCD_LINUX_PATH }} -Leaf)
-        $parentPath = (Split-Path ${{ env.PUBLISH_SCD_LINUX_PATH }} -Parent)
-        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-linux-x64.tar.gz' -C $parentPath $lastPart
+        lastPart=$(basename ${{ env.PUBLISH_SCD_LINUX_PATH }})
+        parentPath=$(dirname ${{ env.PUBLISH_SCD_LINUX_PATH }})
+        tar -czvf "${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-linux-x64.tar.gz" -C "$parentPath" "$lastPart"
 
     - name:  Archive [scd-linux-arm64]
       if: ${{ inputs.is-tool }}
-      shell: pwsh
       run: |
-        $lastPart = (Split-Path ${{ env.PUBLISH_SCD_LINUX_ARM64_PATH }} -Leaf)
-        $parentPath = (Split-Path ${{ env.PUBLISH_SCD_LINUX_ARM64_PATH }} -Parent)
-        tar -czvf '${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-linux-arm64.tar.gz' -C $parentPath $lastPart
+        lastPart=$(basename ${{ env.PUBLISH_SCD_LINUX_ARM64_PATH }})
+        parentPath=$(dirname ${{ env.PUBLISH_SCD_LINUX_ARM64_PATH }})
+        tar -czvf "${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-linux-arm64.tar.gz" -C "$parentPath" "$lastPart"
         
     - name: Upload artifacts [fdd-any] zip
       if: ${{ inputs.is-tool }}
