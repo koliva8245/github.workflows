@@ -76,7 +76,7 @@ jobs:
 
     - name: Patch SixLabors license key
       if: ${{ inputs.sixlabors-license }}
-      uses: ./.github/actions/patch-sixlabors-license
+      uses: koliva8245/github.workflows/.github/actions/patch-sixlabors-license@main
       with:
         main-project: ${{ inputs.main-project }}
         sixlabors-license-key: ${{ secrets.sixlabors-license-key }}
@@ -117,7 +117,7 @@ jobs:
         
     - name: Patch SixLabors license key
       if: ${{ inputs.sixlabors-license }}
-      uses: ./.github/actions/patch-sixlabors-license
+      uses: koliva8245/github.workflows/.github/actions/patch-sixlabors-license@main
       with:
         main-project: ${{ inputs.main-project }}
         sixlabors-license-key: ${{ secrets.sixlabors-license-key }}
