@@ -13,4 +13,4 @@ runs:
     - name: Patch SixLabors license key
       shell: bash
       run: |
-        sed -i "s|<SixLaborsLicenseFile>../sixlabors.lic</SixLaborsLicenseFile>|<SixLaborsLicenseKey>${{ inputs.sixlabors-license-key }}</SixLaborsLicenseKey>|" ${{ inputs.main-project }}
+        perl -i -pe 's|<SixLaborsLicenseFile>\.\./sixlabors\.lic</SixLaborsLicenseFile>|<SixLaborsLicenseKey>${{ inputs.sixlabors-license-key }}</SixLaborsLicenseKey>|' ${{ inputs.main-project }}
