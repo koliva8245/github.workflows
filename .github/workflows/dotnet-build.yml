@@ -15,6 +15,9 @@ on:
       is-tool:
         required: true
         type: boolean
+      sixlabors-license:
+        required: false
+        type: boolean
     secrets:
       es-username:
         required: true
@@ -24,6 +27,8 @@ on:
         required: true
       es-totp-secret:
         required: true
+      sixlabors-license-key:
+        required: false
         
 env:
   PUBLISH_ANY_PATH: ./bin/publish/any
@@ -68,7 +73,14 @@ jobs:
       with:
         path: ${{ github.workspace }}
         key: checkout-${{ github.run_id }}-${{ github.run_attempt }}
-          
+
+    - name: Patch SixLabors license key
+      if: ${{ inputs.sixlabors-license }}
+      uses: ./.github/actions/patch-sixlabors-license
+      with:
+        main-project: ${{ inputs.main-project }}
+        sixlabors-license-key: ${{ secrets.sixlabors-license-key }}
+        
     - name: Use dotnet sdk
       uses: actions/setup-dotnet@v5
       with:
@@ -102,6 +114,13 @@ jobs:
       uses: actions/setup-dotnet@v5
       with:
         dotnet-version: ${{ inputs.dotnet-sdk }}
+        
+    - name: Patch SixLabors license key
+      if: ${{ inputs.sixlabors-license }}
+      uses: ./.github/actions/patch-sixlabors-license
+      with:
+        main-project: ${{ inputs.main-project }}
+        sixlabors-license-key: ${{ secrets.sixlabors-license-key }}
 
     - name: Set non-main branch version build number
       if: github.ref != 'refs/heads/main'
