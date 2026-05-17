@@ -1,0 +1,16 @@
+name: Patch SixLabors License Key
+description: Replaces SixLaborsLicenseFile with SixLaborsLicenseKey in the project file
+
+inputs:
+  main-project:
+    required: true
+  sixlabors-license-key:
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Patch SixLabors license key
+      shell: bash
+      run: |
+        sed -i "s|<SixLaborsLicenseFile>../sixlabors.lic</SixLaborsLicenseFile>|<SixLaborsLicenseKey>${{ inputs.sixlabors-license-key }}</SixLaborsLicenseKey>|" ${{ inputs.main-project }}
