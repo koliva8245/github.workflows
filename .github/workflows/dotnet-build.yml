@@ -107,7 +107,7 @@ jobs:
       if: steps.cache-checkout.outputs.cache-hit != 'true'
       uses: actions/checkout@v6
       with:
-        fetch-depth: 0
+        fetch-depth: 1
         submodules: recursive
 
     - name: Use dotnet sdk
