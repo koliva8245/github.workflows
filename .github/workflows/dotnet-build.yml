@@ -253,21 +253,8 @@ jobs:
         echo $VERSION
         echo "version=$VERSION" | tr -d '\r\n' >> "$GITHUB_ENV"
         
-    - name: Sign artifacts (tool)
-      if: ${{ inputs.is-tool }}
-      uses: sslcom/esigner-codesign@main
-      with:
-        command: sign
-        username: ${{ secrets.es-username }}
-        password: ${{ secrets.es-password }}
-        credential_id: ${{ secrets.es-credential-id }}
-        totp_secret: ${{ secrets.es-totp-secret }}
-        file_path: ${{ env.NUPKG_PATH }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}.nupkg
-        override: true
-        
-    - name: Sign artifacts (library)
-      if: ${{ !inputs.is-tool }}
-      uses: sslcom/esigner-codesign@main
+    - name: Sign artifacts
+      uses: sslcom/esigner-codesign@cf5f6c1d38ad10f47e3ed9aca873f429b1a8d85b
       with:
         command: sign
         username: ${{ secrets.es-username }}
@@ -285,7 +272,7 @@ jobs:
 
     - name: Sign artifacts (library symbols)
       if: ${{ !inputs.is-tool }}
-      uses: sslcom/esigner-codesign@main
+      uses: sslcom/esigner-codesign@cf5f6c1d38ad10f47e3ed9aca873f429b1a8d85b
       with:
         command: sign
         username: ${{ secrets.es-username }}
@@ -388,28 +375,28 @@ jobs:
       run: |
         lastPart=$(basename ${{ env.PUBLISH_FDE_OSX_PATH }})
         parentPath=$(dirname ${{ env.PUBLISH_FDE_OSX_PATH }})
-        tar -czvf "${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-osx-x64.tar.gz" -C "$parentPath" "$lastPart"
+        tar -czf "${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-osx-x64.tar.gz" -C "$parentPath" "$lastPart"
 
     - name:  Archive [fde-osx-arm64]
       if: ${{ inputs.is-tool }}
       run: |
         lastPart=$(basename ${{ env.PUBLISH_FDE_OSX_ARM64_PATH }})
         parentPath=$(dirname ${{ env.PUBLISH_FDE_OSX_ARM64_PATH }})
-        tar -czvf "${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-osx-arm64.tar.gz" -C "$parentPath" "$lastPart"
+        tar -czf "${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-osx-arm64.tar.gz" -C "$parentPath" "$lastPart"
         
     - name:  Archive [fde-linux-x64]
       if: ${{ inputs.is-tool }}
       run: |
         lastPart=$(basename ${{ env.PUBLISH_FDE_LINUX_PATH }})
         parentPath=$(dirname ${{ env.PUBLISH_FDE_LINUX_PATH }})
-        tar -czvf "${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-linux-x64.tar.gz" -C "$parentPath" "$lastPart"
+        tar -czf "${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-linux-x64.tar.gz" -C "$parentPath" "$lastPart"
 
     - name:  Archive [fde-linux-arm64]
       if: ${{ inputs.is-tool }}
       run: |
         lastPart=$(basename ${{ env.PUBLISH_FDE_LINUX_ARM64_PATH }})
         parentPath=$(dirname ${{ env.PUBLISH_FDE_LINUX_ARM64_PATH }})
-        tar -czvf "${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-linux-arm64.tar.gz" -C "$parentPath" "$lastPart"
+        tar -czf "${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-fde-linux-arm64.tar.gz" -C "$parentPath" "$lastPart"
         
     - name: Archive [scd-win-x64]
       if: ${{ inputs.is-tool }}
@@ -424,7 +411,7 @@ jobs:
       run: |
         lastPart=$(basename ${{ env.PUBLISH_SCD_OSX_PATH }})
         parentPath=$(dirname ${{ env.PUBLISH_SCD_OSX_PATH }})
-        tar -czvf "${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-osx-x64.tar.gz" -C "$parentPath" "$lastPart"
+        tar -czf "${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-osx-x64.tar.gz" -C "$parentPath" "$lastPart"
 
     - name:  Archive [scd-osx-arm64]
       if: ${{ inputs.is-tool }}
@@ -438,7 +425,7 @@ jobs:
       run: |
         lastPart=$(basename ${{ env.PUBLISH_SCD_LINUX_PATH }})
         parentPath=$(dirname ${{ env.PUBLISH_SCD_LINUX_PATH }})
-        tar -czvf "${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-linux-x64.tar.gz" -C "$parentPath" "$lastPart"
+        tar -czf "${{ runner.temp }}/${{ inputs.artifact-name-prefix }}.${{ env.version }}-scd-linux-x64.tar.gz" -C "$parentPath" "$lastPart"
 
     - name:  Archive [scd-linux-arm64]
       if: ${{ inputs.is-tool }}
