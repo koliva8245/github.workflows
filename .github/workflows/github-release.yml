@@ -3,9 +3,6 @@ name: Github Release
 on:
   workflow_call:
     inputs:
-      title:
-        required: true
-        type: string
       app-name:
         required: true
         type: string
@@ -56,7 +53,7 @@ jobs:
             ## What's New
             ## Fixes
             ## Other
-          name: ${{ inputs.title }} ${{ env.VERSION }}
+          name: v${{ env.VERSION }}
           tag_name: v${{ env.VERSION }}
           draft: true
           files: ${{ env.ARTIFACTS }}/**
