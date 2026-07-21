@@ -22,7 +22,7 @@ jobs:
   nuget-publish:
     runs-on: ubuntu-latest
     permissions:
-     id-token: write
+      id-token: write
     environment:
       name: ${{ inputs.nuget-publish-env }}
     steps:
