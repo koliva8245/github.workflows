@@ -6,25 +6,16 @@ on:
       artifacts-workflow:
         required: true
         type: string
-      nuget-publish-env:
-        required: true
-        type: string
     secrets:
       token:
         required: true
-      nuget-user:
-        required: true
-        
+
 env:
   ARTIFACTS: ./artifacts
-  
+
 jobs:
-  nuget-publish:
+  download-artifacts:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-    environment:
-      name: ${{ inputs.nuget-publish-env }}
     steps:
       - name: Download artifacts
         uses: dawidd6/action-download-artifact@v21
@@ -35,11 +26,8 @@ jobs:
           name_is_regexp: true
           path: ${{ env.ARTIFACTS }}
 
-      - name: NuGet login
-        uses: NuGet/login@v1
-        id: login
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          user: ${{ secrets.nuget-user }}
-    
-      - name: NuGet push
-        run: dotnet nuget push ${{ env.ARTIFACTS }}/**/*.nupkg --api-key ${{steps.login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
+          name: nuget-artifacts
+          path: ${{ env.ARTIFACTS }}
