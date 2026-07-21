@@ -9,13 +9,10 @@ on:
       nuget-publish-env:
         required: true
         type: string
-      nuget-publish-url:
-        required: true
-        type: string
     secrets:
       token:
         required: true
-      nuget-api-token:
+      nuget-user:
         required: true
         
 env:
@@ -24,9 +21,10 @@ env:
 jobs:
   nuget-publish:
     runs-on: ubuntu-latest
+    permissions:
+     id-token: write
     environment:
       name: ${{ inputs.nuget-publish-env }}
-      url: '${{ inputs.nuget-publish-url }}'
     steps:
       - name: Download artifacts
         uses: dawidd6/action-download-artifact@v21
@@ -36,13 +34,12 @@ jobs:
           name: "-Nuget$"
           name_is_regexp: true
           path: ${{ env.ARTIFACTS }}
-          
-      - name: Use dotnet sdk
-        uses: actions/setup-dotnet@v5
+
+      - name: NuGet login
+        uses: NuGet/login@v1
+        id: login
         with:
-          dotnet-version: 10.0.x
-          
-      - name: Publish nuget
-        run: dotnet nuget push ${{ env.ARTIFACTS }}/**/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json  
-        env:
-          NUGET_AUTH_TOKEN: ${{ secrets.nuget-api-token }}
+          user: ${{ secrets.nuget-user }}
+    
+      - name: NuGet push
+        run: dotnet nuget push ${{ env.ARTIFACTS }}/**/*.nupkg --api-key ${{steps.login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
